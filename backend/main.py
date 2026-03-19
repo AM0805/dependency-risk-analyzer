@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
+from cve_fetcher import get_cve_data
+from suggestions import get_suggestion
 
 app = FastAPI()
 app.add_middleware(
@@ -24,7 +26,22 @@ class DependencyInput(BaseModel):
 
 @app.post("/analyze")
 def analyze(data: DependencyInput):
+    
+    cleaned = clean_dependencies(data.dependencies)
+    
+    results = []
+    
+    for dep in cleaned:
+        cve_info = get_cve_data(dep)
+        
+        suggestion = get_suggestion(cve_info["cve_count"])
+        
+        cve_info["suggestion"] = suggestion
+        
+        results.append(cve_info)
+    
     return {
-        "received_dependencies": data.dependencies,
-        "message": "Analysis will be implemented next"
+        "dependencies": results
     }
+def clean_dependencies(deps):
+    return [d.strip().lower() for d in deps if d.strip()]
