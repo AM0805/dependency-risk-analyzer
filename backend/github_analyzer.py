@@ -1,5 +1,5 @@
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 from pypi_fetcher import get_repo_url
 
 
@@ -40,6 +40,7 @@ def get_github_data(package_name):
     if not repo:
         return {"stars": 0, "open_issues": 0, "last_updated_days": 999}
 
+
     url = f"https://api.github.com/repos/{repo}"
 
     headers = {
@@ -58,8 +59,15 @@ def get_github_data(package_name):
 
     data = response.json()
 
+    pushed_at_str = data.get("pushed_at")
+    if pushed_at_str:
+        pushed_at = datetime.fromisoformat(pushed_at_str.replace("Z", "+00:00"))
+        last_updated_days = (datetime.now(timezone.utc) - pushed_at).days
+    else:
+        last_updated_days = 365
+
     return {
         "stars": data.get("stargazers_count", 0),
         "open_issues": data.get("open_issues_count", 0),
-        "last_updated_days": 0
+        "last_updated_days": max(0, last_updated_days)
     }
