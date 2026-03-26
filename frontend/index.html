@@ -1,21 +1,55 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Dependency Risk Analyzer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dependency Risk Analyzer - Pro Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="dashboard">
+        <header class="main-header">
+            <h1 class="title">
+                <i data-lucide="shield-check"></i>
+                Dependency Risk Analyzer
+            </h1>
+            <p class="subtitle">Advanced security assessment for your dependencies</p>
+        </header>
 
-<h1>Dependency Risk Analyzer</h1>
+        <main class="main-content">
+            <section class="input-section">
+                <div class="input-container">
+                    <label for="deps" class="input-label">Enter dependencies (one per line)</label>
+                    <textarea 
+                        id="deps" 
+                        class="dependency-input" 
+                        placeholder="numpy&#10;pandas&#10;requests&#10;flask"
+                        rows="4"
+                    ></textarea>
+                    <button id="analyze-btn" class="analyze-btn" onclick="analyze()">
+                        <span class="btn-content">
+                            <i data-lucide="search"></i>
+                            <span class="btn-text">Analyze</span>
+                        </span>
+                        <div class="loading-spinner"></div>
+                    </button>
+                </div>
+            </section>
 
-<textarea id="deps" placeholder="Enter dependencies (one per line)"></textarea>
+            <section id="results" class="results-section">
+                <!-- Security cards will be dynamically inserted here -->
+            </section>
+        </main>
+    </div>
 
-<button onclick="analyze()">Analyze</button>
+    <!-- Error Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
 
-<pre id="result"></pre>
-
-<script src="script.js"></script>
-
-
+    <script src="script.js"></script>
 </body>
 </html>
