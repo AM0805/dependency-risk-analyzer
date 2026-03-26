@@ -283,6 +283,7 @@ This project is open source and available under the MIT License.
 ## 👤 Author
 
 **aneeshj-05** - [GitHub Profile](https://github.com/aneeshj-05)
+
 **AM0805** - [GitHub Profile](https://github.com/AM0805)
 
 ## 🤝 Contributing
