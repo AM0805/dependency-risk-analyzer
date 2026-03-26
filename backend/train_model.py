@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, r2_score
 
-FEATURES = ["cve_count", "stars", "open_issues", "last_updated_days"]
+FEATURES = ["cve_count", "avg_cvss", "stars", "open_issues", "last_updated_days"]
 TARGET = "risk_score"
 
 

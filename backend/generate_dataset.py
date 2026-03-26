@@ -51,15 +51,16 @@ PACKAGES = [
 ]
 
 
-def compute_risk_score(cve_count, stars, last_updated_days):
+def compute_risk_score(cve_count, avg_cvss, stars, last_updated_days):
     log_stars = math.log10(stars) if stars > 0 else 0
-    score = (cve_count * 5) + (last_updated_days / 30) - log_stars
-    return round(score, 4)
+    # Higher weights on CVE counts and severity
+    score = (cve_count * 2) + (avg_cvss * 5) + (last_updated_days / 50) - (log_stars * 2)
+    return round(max(0, min(100, score)), 4)
 
 
 def main():
     output_file = "training_data.csv"
-    fieldnames = ["package", "cve_count", "stars", "open_issues", "last_updated_days", "risk_score"]
+    fieldnames = ["package", "cve_count", "avg_cvss", "stars", "open_issues", "last_updated_days", "risk_score"]
 
     with open(output_file, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -71,25 +72,27 @@ def main():
                 cve_info = get_cve_data(package)
                 github_info = get_github_data(package)
 
-                cve_count = cve_info.get("cve_count", 0)
-                stars = github_info.get("stars", 0)
-                open_issues = github_info.get("open_issues", 0)
-                last_updated_days = github_info.get("last_updated_days", 365)
+                # Skip if the data is junk/not found
+                if github_info["stars"] == 0 and github_info["last_updated_days"] == 999:
+                    continue
 
-                risk_score = compute_risk_score(cve_count, stars, last_updated_days)
+                risk_score = compute_risk_score(
+                    cve_info["cve_count"], cve_info["avg_cvss"],
+                    github_info["stars"], github_info["last_updated_days"]
+                )
 
                 writer.writerow({
                     "package": package,
-                    "cve_count": cve_count,
-                    "stars": stars,
-                    "open_issues": open_issues,
-                    "last_updated_days": last_updated_days,
+                    "cve_count": cve_info["cve_count"],
+                    "avg_cvss": cve_info["avg_cvss"],
+                    "stars": github_info["stars"],
+                    "open_issues": github_info["open_issues"],
+                    "last_updated_days": github_info["last_updated_days"],
                     "risk_score": risk_score,
                 })
             except Exception as e:
-                print(f"  Error processing {package}: {e}")
-
-            time.sleep(1)  # avoid rate limiting
+                print(f"Error: {e}")
+            time.sleep(1)
 
     print(f"\nDataset saved to {output_file}")
 
