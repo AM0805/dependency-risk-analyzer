@@ -1,11 +1,103 @@
 // Global variables
 let radarCharts = {};
+let currentMode = 'manual';
 
 // Initialize Lucide icons
 document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     initializeDashboard();
 });
+
+function switchMode(mode) {
+    currentMode = mode;
+    document.getElementById('manual-mode').classList.toggle('hidden', mode !== 'manual');
+    document.getElementById('upload-mode').classList.toggle('hidden', mode !== 'upload');
+    document.getElementById('btn-manual').classList.toggle('active', mode === 'manual');
+    document.getElementById('btn-upload').classList.toggle('active', mode === 'upload');
+}
+
+function parseRequirementsTxt(content) {
+    return content
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line && !line.startsWith('#') && !line.startsWith('-'))
+        .map(line => line.split(/[=><!~]/)[0].trim())
+        .filter(Boolean);
+}
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const packages = parseRequirementsTxt(e.target.result);
+        if (packages.length === 0) {
+            showError('No valid packages found in the file');
+            return;
+        }
+
+        // Populate the hidden textarea so analyze() works as-is
+        document.getElementById('deps').value = packages.join('\n');
+
+        // Show parsed packages as tags
+        const container = document.getElementById('parsed-packages');
+        container.classList.remove('hidden');
+        container.innerHTML = `
+            <div class="parsed-label">Found ${packages.length} packages:</div>
+            <div class="package-tags">${packages.map(p => `<span class="pkg-tag">${p}</span>`).join('')}</div>
+        `;
+        document.getElementById('upload-text').textContent = `✓ ${file.name} loaded`;
+        lucide.createIcons();
+    };
+    reader.readAsText(file);
+}
+
+// Drag and drop support
+document.addEventListener('DOMContentLoaded', () => {
+    const uploadArea = document.getElementById('upload-area');
+    if (!uploadArea) return;
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            document.getElementById('file-input').files = e.dataTransfer.files;
+            handleFileUpload({ target: { files: [file] } });
+        }
+    });
+});
+
+const PROGRESS_STEPS = [
+    'Resolving package names...',
+    'Querying NVD for CVE records...',
+    'Calculating average CVSS scores...',
+    'Fetching GitHub repository data...',
+    'Analysing stars & open issues...',
+    'Checking last commit date...',
+    'Running ML risk model...',
+    'Scoring & ranking dependencies...',
+];
+
+let _progressInterval = null;
+
+function showProgressIndicator() {
+    const btn = document.getElementById('analyze-btn');
+    const btnText = btn.querySelector('.btn-text');
+    let stepIndex = 0;
+    btnText.textContent = PROGRESS_STEPS[stepIndex++];
+    _progressInterval = setInterval(() => {
+        btnText.textContent = PROGRESS_STEPS[stepIndex % PROGRESS_STEPS.length];
+        stepIndex++;
+    }, 1400);
+}
+
+function hideProgressIndicator() {
+    clearInterval(_progressInterval);
+    document.querySelector('#analyze-btn .btn-text').textContent = 'Analyze';
+}
 
 async function analyze() {
     const depsInput = document.getElementById("deps").value.trim();
@@ -19,6 +111,8 @@ async function analyze() {
     
     // Clear previous results
     resultsSection.innerHTML = "";
+
+    showProgressIndicator();
     
     // Set loading state
     analyzeBtn.classList.add("loading");
@@ -43,6 +137,8 @@ async function analyze() {
             showError("No dependency data received from server");
             return;
         }
+
+        hideProgressIndicator();
         
         // Render security cards with radar charts
         data.dependencies.forEach((dep, index) => {
@@ -55,6 +151,7 @@ async function analyze() {
         });
         
     } catch (error) {
+        hideProgressIndicator();
         console.error("Analysis error:", error);
         showError(`Analysis failed: ${error.message}. Please check if backend server is running.`);
     } finally {
