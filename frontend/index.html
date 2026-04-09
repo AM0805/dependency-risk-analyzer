@@ -24,13 +24,35 @@
         <main class="main-content">
             <section class="input-section">
                 <div class="input-container">
-                    <label for="deps" class="input-label">Enter dependencies (one per line)</label>
-                    <textarea 
-                        id="deps" 
-                        class="dependency-input" 
-                        placeholder="numpy&#10;pandas&#10;requests&#10;flask"
-                        rows="4"
-                    ></textarea>
+                    <div class="mode-toggle">
+                        <button class="mode-btn active" id="btn-manual" onclick="switchMode('manual')">
+                            <i data-lucide="keyboard"></i> Manual
+                        </button>
+                        <button class="mode-btn" id="btn-upload" onclick="switchMode('upload')">
+                            <i data-lucide="upload"></i> Upload requirements.txt
+                        </button>
+                    </div>
+
+                    <div id="manual-mode">
+                        <label for="deps" class="input-label">Enter dependencies (one per line)</label>
+                        <textarea 
+                            id="deps" 
+                            class="dependency-input" 
+                            placeholder="numpy&#10;pandas&#10;requests&#10;flask"
+                            rows="4"
+                        ></textarea>
+                    </div>
+
+                    <div id="upload-mode" class="hidden">
+                        <label class="input-label">Upload requirements.txt</label>
+                        <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+                            <i data-lucide="file-up"></i>
+                            <span id="upload-text">Click or drag & drop your requirements.txt</span>
+                        </div>
+                        <input type="file" id="file-input" accept=".txt" style="display:none" onchange="handleFileUpload(event)">
+                        <div id="parsed-packages" class="parsed-packages hidden"></div>
+                    </div>
+
                     <button id="analyze-btn" class="analyze-btn" onclick="analyze()">
                         <span class="btn-content">
                             <i data-lucide="search"></i>
@@ -50,6 +72,6 @@
     <!-- Error Toast Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=5"></script>
 </body>
 </html>

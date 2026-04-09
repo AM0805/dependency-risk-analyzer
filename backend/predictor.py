@@ -13,7 +13,7 @@ def get_ml_risk_analysis(cve_count, avg_cvss, stars, open_issues, last_updated_d
 
     risk_score = int(np.clip(score, 0, 100))
 
-    if risk_score < 30: 
+    if risk_score < 40: 
         status = "Low Risk"
     elif risk_score < 70:
         status = "Medium Risk"

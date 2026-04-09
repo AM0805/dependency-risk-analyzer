@@ -576,6 +576,195 @@ body::after {
     }
 }
 
+/* Mode Toggle */
+.mode-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 10px;
+    padding: 0.25rem;
+}
+
+.mode-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.mode-btn i { width: 15px; height: 15px; }
+
+.mode-btn.active {
+    background: var(--accent-emerald);
+    color: white;
+}
+
+/* Upload Area */
+.upload-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem;
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.upload-area i { width: 32px; height: 32px; }
+
+.upload-area:hover, .upload-area.drag-over {
+    border-color: var(--accent-emerald);
+    background: rgba(16, 185, 129, 0.05);
+    color: var(--accent-emerald);
+}
+
+/* Parsed Packages */
+.parsed-packages {
+    margin-top: 1rem;
+}
+
+.parsed-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.package-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.pkg-tag {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-emerald);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 6px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.hidden { display: none !important; }
+
+/* Suggest Alternative */
+.alt-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.6rem 1rem;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 10px;
+    color: #a5b4fc;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.alt-btn i { width: 15px; height: 15px; }
+
+.alt-btn:hover:not(:disabled) {
+    background: rgba(99, 102, 241, 0.25);
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #c7d2fe;
+}
+
+.alt-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.alt-results {
+    margin-top: 0.75rem;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0.75rem;
+    max-height: 130px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+
+.alt-results::-webkit-scrollbar {
+    width: 4px;
+}
+
+.alt-results::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.alt-results::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    border-radius: 4px;
+}
+
+.alt-results::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.alt-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.alt-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.alt-item:last-child { border-bottom: none; }
+
+.alt-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.alt-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+}
+
+.alt-badge.low  { background: rgba(16,185,129,0.15); color: var(--risk-low); }
+.alt-badge.medium { background: rgba(245,158,11,0.15); color: var(--risk-medium); }
+.alt-badge.high { background: rgba(244,63,94,0.15); color: var(--risk-high); }
+
+.alt-none {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 0.25rem 0;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .dashboard {
