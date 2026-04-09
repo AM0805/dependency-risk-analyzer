@@ -3,8 +3,8 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timezone
 from pypi_fetcher import get_repo_url
+from services.cache import get_from_cache, set_cache
 
-# Load the token you just put in .env
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
@@ -19,6 +19,12 @@ def extract_repo_name(url):
     return repo_parts[0] + "/" + repo_parts[1]
 
 def get_github_data(package_name):
+    key = f"github:{package_name}"
+    cached = get_from_cache(key)
+    if cached:
+        return cached
+
+    print(f"CACHE MISS: {key}")
     repo_url = get_repo_url(package_name)
     repo = extract_repo_name(repo_url)
     
@@ -32,22 +38,24 @@ def get_github_data(package_name):
         repo = common_map.get(package_name)
 
     if not repo:
-        return {"stars": 0, "open_issues": 0, "last_updated_days": 999}
+        result = {"stars": 0, "open_issues": 0, "last_updated_days": 999}
+        set_cache(key, result)
+        return result
 
     url = f"https://api.github.com/repos/{repo}"
     headers = {
         "Accept": "application/vnd.github+json",
         "User-Agent": "dependency-risk-analyzer"
     }
-    
-    # This is the "magic" that uses your PAT
     if GITHUB_TOKEN:
         headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
 
     response = requests.get(url, headers=headers)
 
     if response.status_code != 200:
-        return {"stars": 0, "open_issues": 0, "last_updated_days": 999}
+        result = {"stars": 0, "open_issues": 0, "last_updated_days": 999}
+        set_cache(key, result)
+        return result
 
     data = response.json()
     pushed_at_str = data.get("pushed_at")
@@ -57,8 +65,10 @@ def get_github_data(package_name):
     else:
         last_updated_days = 365
 
-    return {
+    result = {
         "stars": data.get("stargazers_count", 0),
         "open_issues": data.get("open_issues_count", 0),
         "last_updated_days": max(0, last_updated_days)
     }
+    set_cache(key, result)
+    return result
