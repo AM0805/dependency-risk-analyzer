@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <canvas id="dots-bg"></canvas>
     <div class="dashboard">
         <header class="main-header">
             <h1 class="title">
@@ -55,10 +56,9 @@
 
                     <button id="analyze-btn" class="analyze-btn" onclick="analyze()">
                         <span class="btn-content">
-                            <i data-lucide="search"></i>
+                            <i data-lucide="search" id="analyze-icon"></i>
                             <span class="btn-text">Analyze</span>
                         </span>
-                        <div class="loading-spinner"></div>
                     </button>
                 </div>
             </section>
@@ -72,6 +72,6 @@
     <!-- Error Toast Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="script.js?v=5"></script>
+    <script src="script.js"></script>
 </body>
 </html>

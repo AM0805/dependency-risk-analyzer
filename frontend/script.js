@@ -70,6 +70,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+const PROGRESS_STEPS = [
+    'Resolving package names...',
+    'Querying NVD for CVE records...',
+    'Calculating average CVSS scores...',
+    'Fetching GitHub repository data...',
+    'Analysing stars & open issues...',
+    'Checking last commit date...',
+    'Running ML risk model...',
+    'Scoring & ranking dependencies...',
+];
+
+let _progressInterval = null;
+
+function showProgressIndicator() {
+    const btn = document.getElementById('analyze-btn');
+    const btnText = btn.querySelector('.btn-text');
+    const icon = btn.querySelector('i');
+    if (icon) icon.style.display = 'none';
+    let stepIndex = 0;
+    btnText.textContent = PROGRESS_STEPS[stepIndex++];
+    _progressInterval = setInterval(() => {
+        btnText.textContent = PROGRESS_STEPS[stepIndex % PROGRESS_STEPS.length];
+        stepIndex++;
+    }, 1400);
+}
+
+function hideProgressIndicator() {
+    clearInterval(_progressInterval);
+    const btn = document.getElementById('analyze-btn');
+    const btnText = btn.querySelector('.btn-text');
+    const icon = btn.querySelector('i');
+    btnText.textContent = 'Analyze';
+    if (icon) icon.style.display = '';
+}
+
 async function analyze() {
     const depsInput = document.getElementById("deps").value.trim();
     const resultsSection = document.getElementById("results");
@@ -77,6 +112,11 @@ async function analyze() {
     
     if (!depsInput) {
         showError("Please enter at least one dependency to analyze");
+        return;
+    }
+
+    if (currentMode === 'upload' && document.getElementById('parsed-packages').classList.contains('hidden')) {
+        showError("Please upload a requirements.txt file first");
         return;
     }
     
@@ -319,11 +359,8 @@ function initializeDashboard() {
         }
     });
 
-    // Default example text
-    if (!depsTextarea.value) {
-        depsTextarea.value = "numpy\npandas\nrequests\nflask";
-        autoResize(); // adjust height after setting default
-    }
+    // No default text — user should type manually
+    autoResize();
 }
 
 async function fetchAlternatives(packageName, originalScore, btn) {

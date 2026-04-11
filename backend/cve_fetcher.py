@@ -1,4 +1,5 @@
 import requests
+import time
 from services.cache import get_from_cache, set_cache
 
 def get_cve_data(package_name):
