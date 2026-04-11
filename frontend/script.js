@@ -70,35 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-const PROGRESS_STEPS = [
-    'Resolving package names...',
-    'Querying NVD for CVE records...',
-    'Calculating average CVSS scores...',
-    'Fetching GitHub repository data...',
-    'Analysing stars & open issues...',
-    'Checking last commit date...',
-    'Running ML risk model...',
-    'Scoring & ranking dependencies...',
-];
-
-let _progressInterval = null;
-
-function showProgressIndicator() {
-    const btn = document.getElementById('analyze-btn');
-    const btnText = btn.querySelector('.btn-text');
-    let stepIndex = 0;
-    btnText.textContent = PROGRESS_STEPS[stepIndex++];
-    _progressInterval = setInterval(() => {
-        btnText.textContent = PROGRESS_STEPS[stepIndex % PROGRESS_STEPS.length];
-        stepIndex++;
-    }, 1400);
-}
-
-function hideProgressIndicator() {
-    clearInterval(_progressInterval);
-    document.querySelector('#analyze-btn .btn-text').textContent = 'Analyze';
-}
-
 async function analyze() {
     const depsInput = document.getElementById("deps").value.trim();
     const resultsSection = document.getElementById("results");
@@ -186,6 +157,12 @@ function createSecurityCard(dep) {
             <div class="risk-score">${dep.risk_score}/100</div>
         </div>
         
+        ${(riskLevel === 'medium' || riskLevel === 'high') ? `
+        <button class="alt-btn" onclick="fetchAlternatives('${dep.package}', ${dep.risk_score}, this)">
+            <i data-lucide="shuffle"></i> Suggest Alternative
+        </button>
+        <div class="alt-results hidden"></div>` : ''}
+
         <div class="metrics-grid">
             <div class="metric-item">
                 <i data-lucide="star" class="metric-icon"></i>
@@ -349,8 +326,50 @@ function initializeDashboard() {
     }
 }
 
+async function fetchAlternatives(packageName, originalScore, btn) {
+    const altResults = btn.nextElementSibling;
+    if (!altResults.classList.contains('hidden')) {
+        altResults.classList.add('hidden');
+        btn.innerHTML = '<i data-lucide="shuffle"></i> Suggest Alternative';
+        lucide.createIcons();
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader"></i> Loading...';
+    lucide.createIcons();
+
+    try {
+        const res = await fetch(`http://127.0.0.1:8000/alternatives/${packageName}?original_score=${originalScore}`);
+        const data = await res.json();
+        const alts = data.alternatives;
+
+        if (!alts || alts.length === 0) {
+            altResults.innerHTML = '<p class="alt-none">No known alternatives found.</p>';
+        } else {
+            altResults.innerHTML = `
+                <div class="alt-label">Safer Alternatives</div>
+                ${alts.map(a => `
+                <div class="alt-item">
+                    <span class="alt-name">${a.package}</span>
+                    <span class="alt-badge ${getRiskLevel(a.risk_score)}">${a.status} &bull; ${a.risk_score}/100</span>
+                </div>`).join('')}
+            `;
+        }
+        altResults.classList.remove('hidden');
+        btn.innerHTML = '<i data-lucide="x"></i> Hide Alternatives';
+    } catch (e) {
+        altResults.innerHTML = '<p class="alt-none">Failed to fetch alternatives.</p>';
+        altResults.classList.remove('hidden');
+        btn.innerHTML = '<i data-lucide="shuffle"></i> Suggest Alternative';
+    } finally {
+        btn.disabled = false;
+        lucide.createIcons();
+    }
+}
+
 function getRiskLevel(score) {
-    if (score < 30) return "low";
+    if (score < 40) return "low";
     if (score < 70) return "medium";
     return "high";
 }

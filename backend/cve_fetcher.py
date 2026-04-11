@@ -11,8 +11,23 @@ def get_cve_data(package_name):
     # Fetching up to 20 vulnerabilities to calculate average impact
     url = f"https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch={package_name}&resultsPerPage=20"
     
+    # Retry up to 3 times — NVD rate-limits unauthenticated requests
+    for attempt in range(3):
+        try:
+            response = requests.get(url, timeout=15)
+            if response.status_code == 429:
+                time.sleep(6 * (attempt + 1))  # back off: 6s, 12s, 18s
+                continue
+            data = response.json()
+            break
+        except Exception:
+            if attempt == 2:
+                return {"package": package_name, "cve_count": 0, "avg_cvss": 0}
+            time.sleep(3)
+    else:
+        return {"package": package_name, "cve_count": 0, "avg_cvss": 0}
+
     try:
-        response = requests.get(url, timeout=10)
         data = response.json()
         vulnerabilities = data.get("vulnerabilities", [])
         

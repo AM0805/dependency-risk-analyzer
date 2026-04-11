@@ -3,74 +3,445 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dependency Risk Analyzer - Pro Dashboard</title>
+    <title>Dependency Risk Analyzer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --bg-glass-hover: rgba(255, 255, 255, 0.08);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --accent-indigo: #6366f1;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1f3a 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background blobs */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background:
+                radial-gradient(circle at 15% 85%, rgba(99, 102, 241, 0.18) 0%, transparent 45%),
+                radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.07) 0%, transparent 55%);
+            animation: blobShift 18s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Grid overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes blobShift {
+            0%   { background-position: 0% 0%, 100% 100%, 50% 50%; }
+            100% { background-position: 30% 60%, 70% 30%, 60% 40%; }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0;
+            animation: floatUp linear infinite;
+        }
+
+        @keyframes floatUp {
+            0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 0.4; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* ── Layout ── */
+        .page {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 3rem 1.5rem;
+            gap: 4rem;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            text-align: center;
+            max-width: 720px;
+            animation: fadeUp 0.9s ease-out both;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            color: var(--accent-emerald);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.35rem 0.9rem;
+            border-radius: 50px;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-badge i { width: 13px; height: 13px; }
+
+        .hero-title {
+            font-size: clamp(2.4rem, 6vw, 4rem);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.25rem;
+        }
+
+        .hero-title .word-dep  { color: var(--text-primary); }
+        .hero-title .word-risk {
+            background: linear-gradient(135deg, var(--accent-emerald), #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-title .word-analyzer { color: var(--text-secondary); }
+
+        .hero-sub {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            max-width: 540px;
+            margin: 0 auto 2.5rem;
+        }
+
+        /* CTA button */
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, var(--accent-emerald) 0%, #059669 100%);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.9rem 2.2rem;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            animation: pulse-glow 2.5s ease-in-out infinite;
+        }
+
+        .cta-btn i { width: 20px; height: 20px; }
+
+        .cta-btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.35);
+            animation: none;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50%       { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+        }
+
+        /* ── Feature Cards ── */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            width: 100%;
+            max-width: 1100px;
+            animation: fadeUp 0.9s ease-out 0.2s both;
+        }
+
+        .feature-card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 1.75rem 1.5rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 18px 18px 0 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: var(--bg-glass-hover);
+            transform: translateY(-6px);
+            border-color: rgba(255,255,255,0.18);
+        }
+
+        .feature-card:hover::before { opacity: 1; }
+
+        /* per-card accent colors */
+        .card-emerald::before { background: var(--accent-emerald); }
+        .card-amber::before   { background: var(--accent-amber); }
+        .card-rose::before    { background: var(--accent-rose); }
+        .card-indigo::before  { background: var(--accent-indigo); }
+
+        .card-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem auto;
+        }
+
+        .card-icon i, .card-icon svg { width: 22px; height: 22px; }
+
+        .icon-emerald { background: rgba(16,185,129,0.15); color: var(--accent-emerald); }
+        .icon-amber   { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+        .icon-rose    { background: rgba(244,63,94,0.15);  color: var(--accent-rose); }
+        .icon-indigo  { background: rgba(99,102,241,0.15); color: var(--accent-indigo); }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            text-align:center;
+        }
+
+        .card-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            text-align:center;
+        }
+
+        /* ── Why section ── */
+        .why-section {
+            max-width: 1100px;
+            width: 100%;
+            animation: fadeUp 0.9s ease-out 0.35s both;
+        }
+
+        .why-title {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1.25rem;
+        }
+
+        .why-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .why-item {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 1.75rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .why-item:hover {
+            background: var(--bg-glass-hover);
+            transform: translateY(-4px);
+        }
+
+        .why-item-emerald { border-top: 3px solid var(--accent-emerald); }
+        .why-item-amber   { border-top: 3px solid var(--accent-amber); }
+
+        .why-emoji {
+            font-size: 2.2rem;
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+
+        .why-heading {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+        }
+
+        .why-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+
+        /* ── Footer note ── */
+        .footer-note {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            text-align: center;
+            animation: fadeUp 0.9s ease-out 0.5s both;
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 900px) {
+            .features { grid-template-columns: repeat(2, 1fr); }
+            .why-list  { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .features { grid-template-columns: 1fr; }
+            .hero-title { font-size: 2.2rem; }
+        }
+    </style>
 </head>
 <body>
-    <div class="dashboard">
-        <header class="main-header">
-            <h1 class="title">
+    <div class="particles" id="particles"></div>
+    <div class="page">
+
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-badge">
                 <i data-lucide="shield-check"></i>
-                Dependency Risk Analyzer
+                ML-Powered Security Analysis
+            </div>
+            <h1 class="hero-title">
+                <span class="word-dep">Dependency </span>
+                <span class="word-risk">Risk</span>
+                <br>
+                <span class="word-analyzer">Analyzer</span>
             </h1>
-            <p class="subtitle">Advanced security assessment for your dependencies</p>
-        </header>
+            <p class="hero-sub">
+                Your <code style="background:rgba(16,185,129,0.15);color:#10b981;padding:0.1rem 0.4rem;border-radius:5px;font-size:0.95rem">pip install</code> could be a ticking time bomb.
+                We scan CVEs, GitHub health &amp; ML-score every dep — so you ship safe, not sorry.
+            </p>
+            <a href="dashboard.html" class="cta-btn">
+                <i data-lucide="zap"></i>
+                Scan My Dependencies &rarr;
+            </a>
+        </section>
 
-        <main class="main-content">
-            <section class="input-section">
-                <div class="input-container">
-                    <div class="mode-toggle">
-                        <button class="mode-btn active" id="btn-manual" onclick="switchMode('manual')">
-                            <i data-lucide="keyboard"></i> Manual
-                        </button>
-                        <button class="mode-btn" id="btn-upload" onclick="switchMode('upload')">
-                            <i data-lucide="upload"></i> Upload requirements.txt
-                        </button>
-                    </div>
-
-                    <div id="manual-mode">
-                        <label for="deps" class="input-label">Enter dependencies (one per line)</label>
-                        <textarea 
-                            id="deps" 
-                            class="dependency-input" 
-                            placeholder="numpy&#10;pandas&#10;requests&#10;flask"
-                            rows="4"
-                        ></textarea>
-                    </div>
-
-                    <div id="upload-mode" class="hidden">
-                        <label class="input-label">Upload requirements.txt</label>
-                        <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
-                            <i data-lucide="file-up"></i>
-                            <span id="upload-text">Click or drag & drop your requirements.txt</span>
-                        </div>
-                        <input type="file" id="file-input" accept=".txt" style="display:none" onchange="handleFileUpload(event)">
-                        <div id="parsed-packages" class="parsed-packages hidden"></div>
-                    </div>
-
-                    <button id="analyze-btn" class="analyze-btn" onclick="analyze()">
-                        <span class="btn-content">
-                            <i data-lucide="search" id="analyze-icon"></i>
-                            <span class="btn-text">Analyze</span>
-                        </span>
-                    </button>
+        <!-- Feature Cards -->
+        <div class="features">
+            <div class="feature-card card-emerald">
+                <div class="card-icon icon-emerald"><i data-lucide="shield-alert"></i></div>
+                <div class="card-title">CVE Detection</div>
+                <div class="card-desc">Real-time NVD data with avg CVSS scores per package.</div>
+            </div>
+            <div class="feature-card card-amber">
+                <div class="card-icon icon-amber">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+                    </svg>
                 </div>
-            </section>
+                <div class="card-title">GitHub Metrics</div>
+                <div class="card-desc">Stars, open issues & last push date — live.</div>
+            </div>
+            <div class="feature-card card-rose">
+                <div class="card-icon icon-rose"><i data-lucide="brain-circuit"></i></div>
+                <div class="card-title">ML Risk Score</div>
+                <div class="card-desc">Random Forest model outputs a 0–100 risk score.</div>
+            </div>
+            <div class="feature-card card-indigo">
+                <div class="card-icon icon-indigo"><i data-lucide="shuffle"></i></div>
+                <div class="card-title">Safer Alternatives</div>
+                <div class="card-desc">GitHub + PyPI search for lower-risk swaps.</div>
+            </div>
+        </div>
 
-            <section id="results" class="results-section">
-                <!-- Security cards will be dynamically inserted here -->
-            </section>
-        </main>
+        <!-- Why Use This -->
+        <div class="why-section">
+            <p class="why-title">Why use this?</p>
+            <div class="why-list">
+                <div class="why-item why-item-emerald">
+                    <span class="why-emoji">🔥</span>
+                    <div class="why-heading">Your pip install might be a trap</div>
+                    <p class="why-text">245,000+ malicious packages hit PyPI in 2024. One bad dependency can compromise your entire app — and you'd never know until it's too late.</p>
+                </div>
+                <div class="why-item why-item-amber">
+                    <span class="why-emoji">⚡</span>
+                    <div class="why-heading">Stop tab-switching, start shipping</div>
+                    <p class="why-text">NVD, GitHub, PyPI — all in one scan. Get a single risk score in seconds instead of spending 20 minutes manually checking each package.</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="footer-note">Open source · MIT License · Built with FastAPI + scikit-learn</p>
+
     </div>
 
-    <!-- Error Toast Container -->
-    <div id="toast-container" class="toast-container"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
 
-    <script src="script.js"></script>
+            // Generate floating particles
+            const container = document.getElementById('particles');
+            const colors = ['#10b981', '#6366f1', '#f59e0b', '#f43f5e', '#34d399'];
+            for (let i = 0; i < 28; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const size = Math.random() * 5 + 2;
+                p.style.cssText = `
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${Math.random() * 100}%;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    animation-duration: ${Math.random() * 12 + 8}s;
+                    animation-delay: ${Math.random() * 10}s;
+                    box-shadow: 0 0 ${size * 2}px currentColor;
+                `;
+                container.appendChild(p);
+            }
+        });
+    </script>
 </body>
 </html>
