@@ -63,33 +63,33 @@ dependency-risk-analyzer/
 
 ### Backend Setup
 
-1. **Navigate to the backend directory**:
-   ```bash
-   cd backend
-   ```
+   1. **Navigate to the backend directory**:
+      ```bash
+      cd backend
+      ```
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+   2. **Install dependencies**:
+      ```bash
+      pip install -r requirements.txt
+      ```
 
-3. **Set environment variables** (optional):
-   Create a `.env` file in the backend directory if API keys are needed:
-   ```bash
-   # Example .env file
-   GITHUB_TOKEN=your_github_token_here
-   ```
+   3. **Set environment variables** (optional):
+      Create a `.env` file in the backend directory if API keys are needed:
+      ```bash
+      # Example .env file
+      GITHUB_TOKEN=your_github_token_here
+      ```
 
-4. **Run the FastAPI server**:
-   ```bash
-   python main.py
-   ```
-   Or use Uvicorn directly:
-   ```bash
-   uvicorn main:app --reload
-   ```
+   4. **Run the FastAPI server**:
+      ```bash
+      python main.py
+      ```
+      Or use Uvicorn directly:
+      ```bash
+      uvicorn main:app --reload
+      ```
 
-   The API will be available at `http://localhost:8000`
+      The API will be available at `http://localhost:8000`
 
 ### Frontend Setup
 
