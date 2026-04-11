@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dependency Risk Analyzer - Pro Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="dots-bg"></canvas>
+    <div class="dashboard">
+        <header class="main-header">
+            <h1 class="title">
+                <i data-lucide="shield-check"></i>
+                Dependency Risk Analyzer
+            </h1>
+            <p class="subtitle">Advanced security assessment for your dependencies</p>
+        </header>
+
+        <main class="main-content">
+            <section class="input-section">
+                <div class="input-container">
+                    <div class="mode-toggle">
+                        <button class="mode-btn active" id="btn-manual" onclick="switchMode('manual')">
+                            <i data-lucide="keyboard"></i> Manual
+                        </button>
+                        <button class="mode-btn" id="btn-upload" onclick="switchMode('upload')">
+                            <i data-lucide="upload"></i> Upload requirements.txt
+                        </button>
+                    </div>
+
+                    <div id="manual-mode">
+                        <label for="deps" class="input-label">Enter dependencies (one per line)</label>
+                        <textarea 
+                            id="deps" 
+                            class="dependency-input" 
+                            placeholder="numpy&#10;pandas&#10;requests&#10;flask"
+                            rows="4"
+                        ></textarea>
+                    </div>
+
+                    <div id="upload-mode" class="hidden">
+                        <label class="input-label">Upload requirements.txt</label>
+                        <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+                            <i data-lucide="file-up"></i>
+                            <span id="upload-text">Click or drag & drop your requirements.txt</span>
+                        </div>
+                        <input type="file" id="file-input" accept=".txt" style="display:none" onchange="handleFileUpload(event)">
+                        <div id="parsed-packages" class="parsed-packages hidden"></div>
+                    </div>
+
+                    <button id="analyze-btn" class="analyze-btn" onclick="analyze()">
+                        <span class="btn-content">
+                            <i data-lucide="search" id="analyze-icon"></i>
+                            <span class="btn-text">Analyze</span>
+                        </span>
+                    </button>
+                </div>
+            </section>
+
+            <section id="results" class="results-section">
+                <!-- Security cards will be dynamically inserted here -->
+            </section>
+        </main>
+    </div>
+
+    <!-- Error Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
